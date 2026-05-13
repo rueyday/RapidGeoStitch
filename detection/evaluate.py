@@ -23,9 +23,9 @@ RUNS_DIR   = REPO_ROOT / "outputs" / "runs"
 YOLO_CLASS_NAMES = [
     "water",
     "building-major-damage",
-    "building-total-destruction",
     "road-blocked",
     "vehicle",
+    "tree",
 ]
 
 # Thresholds for the per-class confusion summary
@@ -162,7 +162,7 @@ def _build_report(metrics, args: argparse.Namespace, weights_path: Path) -> str:
     lines = []
     
     lines.append("=" * 62)
-    lines.append("StitchWise — RescueNet Evaluation Summary")
+    lines.append("RapidGeoStitch — RescueNet Evaluation Summary")
     lines.append("=" * 62)
     lines.append(f"  weights    : {weights_path}")
     lines.append(f"  split      : {args.split}")
@@ -326,7 +326,7 @@ def main():
     out_dir      = RUNS_DIR / args.name
 
     print("\n╔══════════════════════════════════════════════════════════╗")
-    print("║  StitchWise — RescueNet YOLOv8 Evaluation               ║")
+    print("║  RapidGeoStitch — RescueNet YOLOv8 Evaluation               ║")
     print("╚══════════════════════════════════════════════════════════╝")
     print(f"  weights    : {weights_path}")
     print(f"  data       : {data_yaml}")

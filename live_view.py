@@ -30,10 +30,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 CLASS_NAMES: dict[int, str] = {
-    0: "Water / Flooding",
-    1: "Bldg Damaged",
-    2: "Road Blocked",
-    3: "Vehicle",
+    0: "Flood Zone",
+    1: "Structural Damage",
+    2: "Blocked Route",
+    3: "Vehicle / Asset",
+    4: "Vegetation Damage",
 }
 
 CLASS_BGR: dict[int, tuple] = {
@@ -41,6 +42,7 @@ CLASS_BGR: dict[int, tuple] = {
     1: ( 20,  20, 210),   # red
     2: (  0, 140, 255),   # orange
     3: ( 20, 185,  20),   # green
+    4: (  0, 210, 180),   # chartreuse
 }
 CLASS_RGB: dict[int, tuple] = {k: (v[2], v[1], v[0]) for k, v in CLASS_BGR.items()}
 
@@ -208,7 +210,7 @@ def pipeline_worker(
         try:
             from segmentation.segment_cv import (
                 segment_water, segment_building,
-                segment_road,  segment_vehicle,
+                segment_road,  segment_vehicle, segment_tree,
             )
             _CV_SEG_AVAILABLE = True
         except ImportError:
@@ -284,6 +286,7 @@ def pipeline_worker(
                                     elif cls_id == 1: mask_full = segment_building(orig_bgr, b, morph_size=7)
                                     elif cls_id == 2: mask_full = segment_road(orig_bgr, b)
                                     elif cls_id == 3: mask_full = segment_vehicle(orig_bgr, b)
+                                    elif cls_id == 4: mask_full = segment_tree(orig_bgr, b)
                                     else: continue
                                     mask_proc = cv2.resize(
                                         mask_full.astype(np.uint8), (tw, th),
@@ -497,9 +500,9 @@ class LiveViewApp:
     def _build_ui(self) -> None:
         r = self.root
         r.configure(bg=self.BG)
-        r.title("StitchWise — Live Disaster Map")
+        r.title("RapidGeoStitch — Environmental Assessment")
 
-        tk.Label(r, text="🛰   StitchWise  Live Disaster Map",
+        tk.Label(r, text="🛰   RapidGeoStitch  Environmental Assessment",
                  font=("Helvetica", 13, "bold"),
                  bg=self.PANEL, fg=self.ACC, pady=9).pack(fill=tk.X)
 
@@ -524,7 +527,7 @@ class LiveViewApp:
         rp.pack(side=tk.RIGHT, fill=tk.Y, padx=(5,0))
         rp.pack_propagate(False)
 
-        tk.Label(rp, text="Detected Classes",
+        tk.Label(rp, text="Impact Categories",
                  font=("Helvetica", 10, "bold"),
                  bg=self.PANEL, fg=self.ACC).pack(pady=(14,6))
 
@@ -788,7 +791,7 @@ class LiveViewApp:
             self._btn_measure.configure(bg="#252545", fg=self.FG,
                                         font=("Helvetica", 8))
             self.tool_title_var.set("🗺  Path Tool")
-            self.tool_hint_var.set("Click Start then End — avoids disaster zones")
+            self.tool_hint_var.set("Click Start then End — avoids impact zones")
     
     def _register_click(self, sx: int, sy: int) -> None:
         if self.mosaic_bgr is None:
@@ -895,7 +898,7 @@ class LiveViewApp:
 
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="StitchWise live disaster map viewer",
+        description="RapidGeoStitch multi-modal environmental assessment viewer",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

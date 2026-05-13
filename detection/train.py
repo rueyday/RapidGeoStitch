@@ -1,5 +1,5 @@
 """
-StitchWise — YOLOv8 Fine-tuning on RescueNet
+RapidGeoStitch — YOLOv8 Fine-tuning on RescueNet
 =============================================
 
 Usage:
@@ -65,6 +65,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resume", action="store_true",
                         help="Resume the most recent interrupted run for --name. "
                              "Loads outputs/runs/{name}/weights/last.pt.")
+    parser.add_argument("--workers", type=int, default=8,
+                        help="Dataloader worker processes (reduce if RAM-constrained)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Validate data.yaml and model without starting training")
     return parser.parse_args()
@@ -123,6 +125,7 @@ def _common_train_kwargs(args: argparse.Namespace, data_yaml: Path) -> dict:
         "data":       str(data_yaml),
         "imgsz":      args.imgsz,
         "batch":      args.batch,
+        "workers":    args.workers,
         "device":     args.device,
         "project":    str(RUNS_DIR),
         "exist_ok":   True,   # don't crash if the run dir already exists
@@ -251,7 +254,7 @@ def main():
     data_yaml = Path(args.data)
 
     print("\n╔══════════════════════════════════════════════════════════╗")
-    print("║  StitchWise — RescueNet YOLOv8 Training                 ║")
+    print("║  RapidGeoStitch — RescueNet YOLOv8 Training             ║")
     print("╚══════════════════════════════════════════════════════════╝")
     print(f"  model        : {args.model}")
     print(f"  data         : {data_yaml}")

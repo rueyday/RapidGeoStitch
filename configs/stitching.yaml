@@ -1,5 +1,5 @@
 paths:
-  data_dir: "data/aerial234"
+  data_dir: "data/rescuenet_stitch"
   output_dir: "outputs/pairwise"
 
 pair:

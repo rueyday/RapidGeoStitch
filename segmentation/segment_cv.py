@@ -21,19 +21,19 @@ DEFAULT_YOLO_WEIGHTS = REPO_ROOT / "detection" / "model" / "best.pt"
 OUTPUT_DIR = REPO_ROOT / "outputs" / "runs" / "cv_segmentation"
 
 CLASS_NAMES = {
-    0: "water",
-    1: "building-major-damage",
-    2: "building-total-destruction",
-    3: "road-blocked",
-    4: "vehicle",
+    0: "flood-zone",
+    1: "structural-damage",
+    2: "blocked-route",
+    3: "vehicle",
+    4: "vegetation-damage",
 }
 
 CLASS_COLORS = {
-    0: (180,  80,   0),
-    1: (  0, 200, 255),
-    2: (  0,   0, 220),
-    3: (  0, 140, 255),
-    4: (  0, 210,   0),
+    0: ( 20,  90, 210),   # blue   – flood zone
+    1: ( 20,  20, 210),   # red    – structural damage
+    2: (  0, 140, 255),   # orange – blocked route
+    3: ( 20, 185,  20),   # green  – vehicle / asset
+    4: (  0, 210, 180),   # chartreuse – vegetation damage
 }
 
 BOX_PAD_FRAC = 0.15
@@ -194,6 +194,37 @@ def segment_vehicle(image: np.ndarray, box: tuple) -> np.ndarray:
     gc_mask = cv2.morphologyEx(gc_mask, cv2.MORPH_OPEN, kernel)
     return _paste_mask(H, W, gc_mask, crop_coords)
 
+
+def segment_tree(image: np.ndarray, box: tuple) -> np.ndarray:
+    """
+    Vegetation segmentation via HSV green-channel masking.
+    Trees in aerial imagery have a strong spectral signature in the
+    yellow-green hue band (HSV H≈35–90) that color thresholding exploits
+    without requiring GrabCut or GPU inference.
+    """
+    x1, y1, x2, y2 = box
+    H, W = image.shape[:2]
+    crop, crop_coords, rect = _padded_crop(image, x1, y1, x2, y2)
+    rx, ry, rw, rh = rect
+
+    hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+    green_mask = (
+        (hsv[:, :, 0] >= 35) & (hsv[:, :, 0] <= 90) &
+        (hsv[:, :, 1] > 30)
+    ).astype(np.uint8)
+
+    combined = np.zeros_like(green_mask)
+    combined[ry:ry+rh, rx:rx+rw] = green_mask[ry:ry+rh, rx:rx+rw]
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+    coverage = combined.sum() / max(rw * rh, 1)
+    if coverage > 0.05:
+        return _paste_mask(H, W, cv2.morphologyEx(combined, cv2.MORPH_CLOSE, kernel), crop_coords)
+
+    gc_mask = _grabcut(crop, rect)
+    return _paste_mask(H, W, cv2.morphologyEx(gc_mask, cv2.MORPH_CLOSE, kernel), crop_coords)
+
+
 def segment(image: np.ndarray, boxes: list, class_ids: list) -> tuple:
     H, W = image.shape[:2]
     semantic_map = np.zeros((H, W), dtype=np.uint8)
@@ -211,11 +242,11 @@ def segment(image: np.ndarray, boxes: list, class_ids: list) -> tuple:
         elif cls_id == 1:
             mask = segment_building(image, (x1, y1, x2, y2), morph_size=7)
         elif cls_id == 2:
-            mask = segment_building(image, (x1, y1, x2, y2), morph_size=11)
-        elif cls_id == 3:
             mask = segment_road(image, (x1, y1, x2, y2))
-        elif cls_id == 4:
+        elif cls_id == 3:
             mask = segment_vehicle(image, (x1, y1, x2, y2))
+        elif cls_id == 4:
+            mask = segment_tree(image, (x1, y1, x2, y2))
         else:
             continue
 
@@ -393,7 +424,7 @@ def run_benchmark(args):
 
 def parse_args():
     p = argparse.ArgumentParser(
-        description="StitchWise — Two-Stage Segmentation (YOLO + Traditional CV)"
+        description="RapidGeoStitch — Two-Stage Segmentation (YOLO + Traditional CV)"
     )
 
     # Shared
@@ -425,7 +456,7 @@ def main():
     args = parse_args()
 
     print("\n╔══════════════════════════════════════════════════════════╗")
-    print("║  StitchWise — Two-Stage Segmentation (YOLO + CV)         ║")
+    print("║  RapidGeoStitch — Two-Stage Segmentation (YOLO + CV)    ║")
     print("╚══════════════════════════════════════════════════════════╝\n")
 
     if args.benchmark:

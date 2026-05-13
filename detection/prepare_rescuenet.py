@@ -31,7 +31,7 @@ CLASSES = {
     10: "pool",
 }
 
-ACTIVE_CLASSES = [1, 4, 5, 7, 8]  # water, major-damage, total-destruction, road-blocked, vehicle
+ACTIVE_CLASSES = [1, 4, 7, 8, 9]  # water, building-major-damage, road-blocked, vehicle, tree
 
 YOLO_CLASS_MAP = {orig: yolo for yolo, orig in enumerate(ACTIVE_CLASSES)}
 YOLO_CLASS_NAMES = [CLASSES[i] for i in ACTIVE_CLASSES]
