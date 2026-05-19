@@ -1,14 +1,14 @@
 # RapidGeoStitch
 
-Real-time multi-modal environmental assessment from UAV imagery. RapidGeoStitch fuses RGB aerial imagery, GPS/EXIF geospatial metadata, and monocular depth estimation into an incrementally-built georeferenced mosaic — segmenting environmental impact zones and overlaying them as the mosaic builds (~670 ms/frame on GPU).
+Real-time multi-modal environmental assessment from UAV imagery. RapidGeoStitch fuses RGB aerial imagery, GPS/EXIF geospatial metadata, and monocular depth estimation into an incrementally-built georeferenced mosaic — segmenting environmental impact zones and overlaying them as the mosaic builds.
 
-> Submitted to the **[Multi-modal Robotics for Sustainable Environmental Sensing](https://sites.google.com/view/sustainability-robotics/home)** workshop at IEEE ICRA 2026, Vienna.
-
-![Alt Text](https://drive.google.com/uc?export=view&id=1_FRo-IeENbknfFpJ4ITxd_zMwTdFtmmc)
+![demo gif](demo.gif)
 
 ## Motivation
 
 Post-disaster environments — flooded lowlands, collapsed infrastructure, blocked transport corridors — demand rapid spatial situational awareness. Traditional mapping is too slow: images must be transferred, processed offline, and returned to field teams minutes or hours later. RapidGeoStitch runs the full pipeline on-device as a UAV sequence arrives, giving responders a metric-accurate environmental damage map within seconds of the drone landing.
+
+![path planning demo](pathplanning.png)
 
 ## Overview
 
